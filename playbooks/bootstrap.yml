@@ -1,38 +1,35 @@
 ---
 - hosts: all
-  remote_user: clevanger
+  remote_user: mstyles
   sudo: yes
   vars:
-    home_user: clevanger
-    workspace: /home/{{ home_user }}/Documents
+    home_user: mstyles
+    workspace: /home/{{ home_user }}
 
   tasks:
-    - name: Install Spotify key from keyserver is installed
-      apt_key: id=94558F59 keyserver=keyserver.ubuntu.com
-
-    - name: Ensure Spotify PPA Repository is installed
-      apt_repository: state=present repo='ppa:nvbn-rm/ppa' validate_certs=no
-
-    - name: Ensure Everpad PPA Repository is installed
-      apt_repository: state=present repo='deb http://repository.spotify.com stable non-free'
-
-    - name: Ensure Oracle JDK PPA Repository is installed
-      apt_repository: state=present repo='ppa:webupd8team/java' validate_certs=no
-
-    - name: Ensure Sublimetext3 PPA Repository is installed
-      apt_repository: repo='ppa:webupd8team/sublime-text-3' state=present
-
-    - name: Autoaccept license for Java
-      action: shell echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
-
     - name: Update APT package cache
       action: apt update_cache=yes
 
     - name: Ensure git is installed
       apt: pkg=git state=present update_cache=yes
 
-    - name: Ensure zsh is installed
-      apt: pkg=zsh state=present
+    - name: Ensure ctags is installed
+      apt: pkg=exuberant-ctags state=present
+
+    - name: Ensure ack is installed
+      apt: pkg=ack-grep state=present
+
+    - name: Rename ack-grep to ack
+      command: dpkg-divert --local --divert /usr/bin/ack --rename --add /usr/bin/ack-grep
+
+    - name: Ensure vim is installed
+      apt: pkg=vim state=present
+
+    - name: Install vim files
+      script: ../files/install_vim_config.sh
+
+    - name: Ensure wine is installed
+      apt: pkg=wine state=present
 
     - name: Ensure htop is installed
       apt: pkg=htop state=present
@@ -40,17 +37,8 @@
     - name: Ensure Pidgin Messenger is installed
       apt: pkg=pidgin state=present
 
-    - name: Ensure Emma is installed
-      apt: pkg=emma state=present
-
-    - name: Ensure Everpad is installed
-      apt: pkg=everpad state=present
-
     - name: Ensure Pip is installed
       apt: pkg=python-pip state=present
-
-    - name: Ensure tmux is installed
-      apt: pkg=tmux state=present
 
     - name: Ensure curl is installed
       apt: pkg=curl state=present
@@ -94,23 +82,14 @@
     - name: Ensure shutter is installed
       apt: pkg=shutter state=present
 
-    - name: Ensure rhino is installed
-      apt: pkg=rhino state=present
-
     - name: Ensure nodejs is installed
       apt: pkg=nodejs state=present
 
     - name: Fix nodejs names in Ubuntu
       script: ../files/fix_nodejs.sh ignore_errors=True
 
-    - name: Ensure npm is installed
-      apt: pkg=npm state=present
-
     - name: Ensure build-essential is installed
       apt: pkg=build-essential state=present
-
-    - name: Ensure dia is installed
-      apt: pkg=dia state=present
 
     - name: Ensure fontconfig is installed
       apt: pkg=fontconfig state=present
@@ -118,56 +97,14 @@
     - name: Ensure ruby is installed
       apt: pkg=ruby state=present
 
-    - name: Install SublimeText3
-      apt: pkg=sublime-text-installer state=present
-
-    - name: Ensure Spotify is installed
-      apt: pkg=spotify-client state=present update_cache=yes
-
-    - name: Ensure grunt-cli is installed
-      npm: name=grunt-cli global=yes state=present
-
-    - name: Ensure bower is installed
-      npm: name=bower global=yes state=present
-
-    - name: Ensure karma is installed
-      npm: name=karma global=yes state=present
-
-    - name: Ensure phantomjs is installed
-      npm: name=phantomjs global=yes state=present
+    - name: Set git config user.name
+      command: git config --global user.name "Matt Styles"
 
     - name: Set git config user.name
-      command: git config --global user.name "Camron Levanger"
-
-    - name: Set git config user.name
-      command: git config --global user.email "clevanger@insidesales.com"
+      command: git config --global user.email "mstyles@insidesales.com"
 
     - name: UFW open port 9000 for xdebug connections
       command: ufw allow 9000
 
     - name: Install composer
       script: ../files/global_composer_install.sh
-
-    - name: Fix nodejs names in Ubuntu
-      script: ../files/install_oh-my-zsh.sh
-
-    - name: Update bashrc to launch zsh for user
-      lineinfile: dest=/home/{{ home_user }}/.bashrc line="zsh" regexp="^zsh" owner={{ home_user}} state=present insertafter=EOF create=True
-
-    - name: Copy over .vimrc files
-      copy: src=../files/.vimrc dest=/home/{{ home_user }}/ owner={{ home_user }}
-
-    - name: Copy over .tmux.conf files
-      copy: src=../files/.tmux.conf dest=/home/{{ home_user }}/ owner={{ home_user }}
-
-    - name: Copy over .zprofile files
-      copy: src=../files/.zprofile dest=/home/{{ home_user }}/ owner={{ home_user }}
-
-    - name: Copy over .zshrc files
-      copy: src=../files/.zshrc dest=/home/{{ home_user }}/ owner={{ home_user }}
-
-    - name: Download Dropbox
-      get_url: url="https://www.dropbox.com/download?dl=packages/ubuntu/dropbox_1.6.2_amd64.deb" dest="/home/{{ home_user }}/Downloads/dropbox.deb"
-
-    - name: Install Dropbox
-      apt: deb=/home/{{ home_user }}/Downloads/dropbox.deb
